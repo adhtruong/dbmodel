@@ -1,13 +1,13 @@
 import uuid
 from datetime import date, datetime
-from typing import Dict, Type, Union, get_args, get_origin
+from typing import Any, Dict, Type, Union, get_args, get_origin
 
 from sqlalchemy import Date, DateTime, Integer, String
 from sqlalchemy.types import TypeDecorator
-from sqlalchemy_utils.types.json import JSONType
-from sqlalchemy_utils.types.uuid import UUIDType
+from sqlalchemy_utils.types.json import JSONType  # type: ignore
+from sqlalchemy_utils.types.uuid import UUIDType  # type: ignore
 
-_TYPE_MAPPING: Dict[type, TypeDecorator] = {
+_TYPE_MAPPING: Dict[type[Any], type[TypeDecorator]] = {
     int: Integer,
     str: String,
     date: Date,
@@ -17,7 +17,7 @@ _TYPE_MAPPING: Dict[type, TypeDecorator] = {
 }
 
 
-def register_type(type_: Type, db_type: TypeDecorator) -> None:
+def register_type(type_: Type, db_type: type[TypeDecorator]) -> None:
     _TYPE_MAPPING[type_] = db_type
 
 
