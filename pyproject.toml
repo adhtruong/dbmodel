@@ -16,8 +16,6 @@ exclude = '''
     | build
     | dist
   )/
-  | foo.py           # also separately exclude a file named foo.py in
-                     # the root of the project
 )
 '''
 
@@ -35,11 +33,11 @@ exclude_lines = [
 
 [tool.coverage.run]
 branch = true
-source = ["src", "tests"]
+source = ["db_model"]
 omit = ["tests/fixtures/*"]
 
 [tool.isort]
 profile = "black"
 
-[tool.pytest]
-addopts = "-ra -v --durations=5 --cov=src"
+[tool.pytest.ini_options]
+addopts = "-ra -v --durations=5 --cov-report term --cov=db_model"

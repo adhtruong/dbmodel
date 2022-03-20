@@ -1,4 +1,4 @@
-# Template Python Project
+# DBModel
 
 <p align="center">
     <a href="https://codecov.io/gh/{{ repo }}">
@@ -12,7 +12,14 @@
     </a>
 </p>
 
-Template python project that sets up standard developer requirements, precommits and CI tools.
+Utils and wrappers for SQLAlchemy.
+
+## TODO
+
+- [ ] Add documentation
+- [ ] Add testing
+- [ ] Add main decorator
+- [ ] Allow better configuration
 
 ## Development Set Up
 

@@ -1,6 +1,5 @@
 import uuid
 from datetime import date, datetime
-from types import NoneType
 from typing import Dict, Type, Union, get_args, get_origin
 
 from sqlalchemy import Date, DateTime, Integer, String
@@ -8,7 +7,7 @@ from sqlalchemy.types import TypeDecorator
 from sqlalchemy_utils.types.json import JSONType
 from sqlalchemy_utils.types.uuid import UUIDType
 
-_TYPE_MAPPING: Dict[Type, TypeDecorator] = {
+_TYPE_MAPPING: Dict[type, TypeDecorator] = {
     int: Integer,
     str: String,
     date: Date,
@@ -30,7 +29,7 @@ def get_type(type_: type) -> TypeDecorator:
     if not is_optional(type_):
         return _TYPE_MAPPING[type_]()
 
-    inner_types = {inner_type for inner_type in get_args(type_) if isinstance(type_, NoneType)}
+    inner_types = {inner_type for inner_type in get_args(type_) if type_ != type(None)}  # noqa: E721
     if len(inner_types) != 1:
         raise RuntimeError(f"Unable to process {type_}")
     actual_type = tuple(inner_types)[0]
