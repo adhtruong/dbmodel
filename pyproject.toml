@@ -39,5 +39,8 @@ omit = ["tests/fixtures/*"]
 [tool.isort]
 profile = "black"
 
+[tool.mypy]
+plugins = ["db_model/ext/mypy_plugin.py"]
+
 [tool.pytest.ini_options]
 addopts = "-ra -v --durations=5 --cov-report term --cov=db_model"

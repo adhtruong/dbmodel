@@ -30,7 +30,7 @@ def test_simple_model(engine: Engine, session: Session) -> None:
 
     mapper_registry.metadata.create_all(engine)
 
-    model = Model(id=1, name="John")  # type: ignore
+    model = Model(id=1, name="John")
     session.add_all([model])
 
     result = session.query(Model).all()
