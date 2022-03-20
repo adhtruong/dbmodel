@@ -26,10 +26,16 @@ def test_simple_model(engine: Engine, session: Session) -> None:
     @register
     class Model:
         id: int = field(metadata={"primary_key": True})
+        name: str
 
     mapper_registry.metadata.create_all(engine)
 
-    model = Model(id=1)
-    session.add(model)
+    model = Model(id=1, name="John")  # type: ignore
+    session.add_all([model])
 
-    assert session.query(Model).all() == [Model(id=1)]
+    result = session.query(Model).all()
+    assert result == [model]
+
+    session.delete(result[0])
+
+    assert not session.query(Model).all()

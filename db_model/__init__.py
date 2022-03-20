@@ -1,3 +1,6 @@
-__all__ = ("register",)
+__all__ = (
+    "register",
+    "Mapped",
+)
 
-from .core import register
+from .core import Mapped, register

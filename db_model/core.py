@@ -1,17 +1,25 @@
 from dataclasses import Field, dataclass
 from dataclasses import field as _field
 from dataclasses import fields
-from typing import Any, Callable, Iterable, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Iterable, TypeVar, Union
 
 from sqlalchemy import Column, Table
 from sqlalchemy.orm import registry
+from sqlalchemy.orm.attributes import Mapped as _Mapped
+from typing_extensions import Annotated
 
 from db_model.types_ import get_type
 
-mapper_registry = registry()
-
-
 _T = TypeVar("_T")
+
+
+if TYPE_CHECKING:
+    Mapped = _Mapped
+else:
+    Mapped = Annotated[_T, "Mapped"]
+
+
+mapper_registry = registry()
 
 
 def __dataclass_transform__(
