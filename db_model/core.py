@@ -1,20 +1,44 @@
 from dataclasses import Field, dataclass
 from dataclasses import field as _field
 from dataclasses import fields
-from typing import TYPE_CHECKING, Any, Callable, Iterable, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Generic,
+    Iterable,
+    Literal,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from sqlalchemy import Column, Table
 from sqlalchemy.orm import registry
-from sqlalchemy.orm.attributes import Mapped as _Mapped
 from typing_extensions import Annotated
 
-from db_model.types_ import get_type
+from .types_ import get_type
 
 _T = TypeVar("_T")
 
 
 if TYPE_CHECKING:
-    Mapped = _Mapped
+    # TODO bound column type by Python type to mapped SQLAlchemy type
+    class Mapped(Generic[_T]):
+        @overload
+        def __get__(self, instance: Literal[None], owner: Any) -> Column:
+            ...
+
+        @overload
+        def __get__(self, instance: object, owner: Any) -> _T:
+            ...
+
+        def __get__(self, instance: object, owner: Any) -> Union[_T, Column]:
+            ...
+
+        def __set__(self, instance: object, owner: _T) -> None:
+            ...
+
 else:
     Mapped = Annotated[_T, "Mapped"]
 
@@ -26,6 +50,7 @@ def __dataclass_transform__(
     *,
     eq_default: bool = True,
     order_default: bool = False,
+    transform_descriptor_types: bool = True,
     kw_only_default: bool = False,
     field_descriptors: tuple[Union[type, Callable[..., Any]], ...] = (()),
 ) -> Callable[[_T], _T]:
@@ -36,6 +61,7 @@ def __dataclass_transform__(
 
 @__dataclass_transform__(
     kw_only_default=False,
+    transform_descriptor_types=True,
     field_descriptors=(_field, Field),
 )
 def register(cls: type[_T]) -> type[_T]:

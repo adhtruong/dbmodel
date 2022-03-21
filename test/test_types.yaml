@@ -1,0 +1,17 @@
+- case: compose_two_functions
+  main: |
+    from myapp import MyModel
+
+    reveal_type(MyModel.__init__)  # N: Revealed type is "builtins.str"
+  files:
+  - path: myapp.py
+    content: |
+      from db_model import register
+
+      @register
+      class MyModel:
+        id: int
+        name: str
+  mypy_config: plugins = db_model/ext/mypy_plugin.py
+  env:
+  - MYPYPATH=.

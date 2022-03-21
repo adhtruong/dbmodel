@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
-from db_model import register
+from db_model import Mapped, register
 from db_model.core import mapper_registry
 
 
@@ -25,7 +25,7 @@ def fixture_session(engine: Engine) -> Iterator[Session]:
 def test_simple_model(engine: Engine, session: Session) -> None:
     @register
     class Model:
-        id: int = field(metadata={"primary_key": True})
+        id: Mapped[int] = field(metadata={"primary_key": True})
         name: str
 
     mapper_registry.metadata.create_all(engine)
