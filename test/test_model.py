@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
-from db_model import register
+from db_model import PrimaryKey, register
 from db_model.core import mapper_registry
 
 
@@ -22,6 +22,14 @@ def fixture_session(engine: Engine) -> Iterator[Session]:
     connection = engine.connect()
     with Session(bind=connection) as session:
         yield session
+
+
+def test_primary_key(engine: Engine, session: Session) -> None:
+    @register
+    class PrimaryKeyModel:
+        id: PrimaryKey[UUID]
+        name: str
+        age: Optional[int]
 
 
 def test_crud_model(engine: Engine, session: Session) -> None:

@@ -19,6 +19,8 @@ else:
     Mapped = Annotated[_T, "Mapped"]
 
 
+PrimaryKey = Annotated[_T, "PrimaryKey"]
+
 mapper_registry = registry()
 
 
@@ -35,7 +37,6 @@ def __dataclass_transform__(
 
 
 @__dataclass_transform__(
-    kw_only_default=False,
     field_descriptors=(_field, Field),
 )
 def register(cls: type[_T]) -> type[_T]:
@@ -58,8 +59,10 @@ def register(cls: type[_T]) -> type[_T]:
 
 def get_columns(cls) -> Iterable[Column]:
     for field in fields(cls):
+        column_info = get_type(field)
         yield Column(
             field.name,
-            get_type(field.type),
-            primary_key=field.metadata.get("primary_key", False),
+            column_info.type_,
+            nullable=column_info.is_optional,
+            primary_key=column_info.is_primary_key,
         )

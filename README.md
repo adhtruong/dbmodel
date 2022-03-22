@@ -15,17 +15,12 @@
 Utils and wrappers for SQLAlchemy.
 
 ```python
-from dataclass import field
-
-from db_model import register
-from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session
+from db_model import register, PrimaryKey
 
 # Make SQLAlchemy model based on annotations.
 @register
 class MyModel:
-    id: int = field(metadata={'primary_key': True})
+    id: PrimaryKey[int]
     name: str
 
 ```
