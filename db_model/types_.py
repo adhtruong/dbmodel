@@ -27,10 +27,13 @@ def is_optional(field):
 
 def get_type(type_: type) -> TypeEngine:
     if not is_optional(type_):
-        return _COLUMN_TYPE_MAPPING[type_]()
+        try:
+            return _COLUMN_TYPE_MAPPING[type_]()
+        except KeyError:
+            raise RuntimeError(f"Unable to map type {type_}")
 
-    inner_types = {inner_type for inner_type in get_args(type_) if type_ != type(None)}  # noqa: E721
+    inner_types = {inner_type for inner_type in get_args(type_) if inner_type != type(None)}  # noqa: E721
     if len(inner_types) != 1:
-        raise RuntimeError(f"Unable to process {type_}")
+        raise RuntimeError(f"Unable to process {type_}: {inner_types}")
     actual_type = tuple(inner_types)[0]
     return _COLUMN_TYPE_MAPPING[actual_type]().evaluates_none()
