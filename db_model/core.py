@@ -1,13 +1,12 @@
-from dataclasses import Field, dataclass
-from dataclasses import field as _field
-from dataclasses import fields
-from typing import TYPE_CHECKING, Any, Callable, Iterable, TypeVar, Union
+from dataclasses import Field, dataclass, field, fields
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Iterable, TypeVar, Union
 
 from sqlalchemy import Column, Table
 from sqlalchemy.orm import registry
 from typing_extensions import Annotated
 
 from db_model.field import Mapped as _Mapped
+from db_model.field import mapped_column
 from db_model.types_ import get_column
 
 _T = TypeVar("_T")
@@ -36,8 +35,13 @@ def __dataclass_transform__(
     return lambda a: a
 
 
+def get_columns(cls) -> Iterable[Column]:
+    yield from map(get_column, fields(cls))
+
+
 @__dataclass_transform__(
-    field_descriptors=(_field, Field),
+    field_descriptors=(field, Field, mapped_column),
+    kw_only_default=True,
 )
 def register(cls: type[_T]) -> type[_T]:
     cls = dataclass(cls)
@@ -57,5 +61,13 @@ def register(cls: type[_T]) -> type[_T]:
     return cls
 
 
-def get_columns(cls) -> Iterable[Column]:
-    yield from map(get_column, fields(cls))
+@__dataclass_transform__(
+    field_descriptors=(field, Field, mapped_column),
+    kw_only_default=True,
+)
+class DBModel:
+    if TYPE_CHECKING:
+        __table__: ClassVar[Table]
+
+    def __init_subclass__(cls) -> None:
+        register(cls)

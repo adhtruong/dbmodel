@@ -13,6 +13,12 @@ class DBModelPlugin(Plugin):
 
         return None
 
+    def get_base_class_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
+        if fullname in {"db_model.core.DBModel"}:
+            return dataclasses.dataclass_class_maker_callback
+
+        return None
+
 
 def plugin(_: str) -> type[Plugin]:
     return DBModelPlugin

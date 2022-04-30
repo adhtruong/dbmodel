@@ -9,13 +9,13 @@ from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session
 
 from db_model import PrimaryKey, register
-from db_model.core import mapper_registry
+from db_model.core import DBModel, mapper_registry
 from db_model.field import col, mapped_column
 
 
 @pytest.fixture(name="engine")
 def fixture_engine() -> Engine:
-    return create_engine("sqlite:///:memory:")
+    return create_engine("sqlite:///:memory:", future=True)
 
 
 @pytest.fixture(name="session")
@@ -47,13 +47,12 @@ def test_primary_key() -> None:
 
 
 def test_crud_model(engine: Engine, session: Session) -> None:
-    @register
-    class Model:
+    class Model(DBModel):
         id: PrimaryKey[UUID]
         name: str
         age: Optional[int] = mapped_column(metadata={"hello": "world"})
 
-    assert isinstance(Model.__table__, Table)  # type: ignore[attr-defined]
+    assert isinstance(Model.__table__, Table)
 
     mapper_registry.metadata.create_all(engine)
 
