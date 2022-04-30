@@ -8,7 +8,6 @@ class DBModelPlugin(Plugin):
     """Type checker plugin that is enabled by default."""
 
     def get_class_decorator_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
-
         if fullname in {"db_model.core.register"}:
             return dataclasses.dataclass_class_maker_callback
 

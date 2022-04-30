@@ -52,6 +52,7 @@ def mapped_column(
     hash: Optional[bool] = ...,
     compare: bool = ...,
     metadata: Optional[Mapping[str, Any]] = ...,
+    is_primary_key: bool = False,
 ) -> _T:
     ...
 
@@ -65,6 +66,7 @@ def mapped_column(
     hash: Optional[bool] = ...,
     compare: bool = ...,
     metadata: Optional[Mapping[str, Any]] = ...,
+    is_primary_key: bool = False,
 ) -> _T:
     ...
 
@@ -77,6 +79,7 @@ def mapped_column(
     hash: Optional[bool] = ...,
     compare: bool = ...,
     metadata: Optional[Mapping[str, Any]] = ...,
+    is_primary_key: bool = False,
 ) -> _T:
     ...
 
@@ -90,7 +93,10 @@ def mapped_column(
     hash=None,
     compare=True,
     metadata=None,
+    is_primary_key: bool = False,
 ) -> _T:
+    if metadata is None:
+        metadata = {}
     return Field(  # type: ignore[return-value]
         default=default,
         default_factory=default_factory,
@@ -98,7 +104,7 @@ def mapped_column(
         repr=repr,
         hash=hash,
         compare=compare,
-        metadata=metadata,
+        metadata=metadata | {"is_primary_key": is_primary_key},
     )
 
 

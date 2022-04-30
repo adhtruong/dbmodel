@@ -43,7 +43,7 @@ def test_primary_key() -> None:
     class CompositePrimaryKeyModel:
         id: PrimaryKey[UUID]
         name: PrimaryKey[str]
-        age: Optional[int] = mapped_column(metadata={"is_primary_key": True})
+        age: Optional[int] = mapped_column(is_primary_key=True)
 
 
 def test_crud_model(engine: Engine, session: Session) -> None:
