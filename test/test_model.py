@@ -1,15 +1,16 @@
-from dataclasses import field
 from datetime import date
 from typing import Iterator, Optional, Union
 from uuid import UUID, uuid4
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import Table, create_engine
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session
 
 from db_model import PrimaryKey, register
 from db_model.core import mapper_registry
+from db_model.field import col, mapped_column
 
 
 @pytest.fixture(name="engine")
@@ -24,20 +25,35 @@ def fixture_session(engine: Engine) -> Iterator[Session]:
         yield session
 
 
-def test_primary_key(engine: Engine, session: Session) -> None:
+def test_primary_key() -> None:
+    with pytest.raises(ArgumentError):
+
+        @register
+        class NoPrimaryKeyModel:
+            name: str
+            age: Optional[int]
+
     @register
     class PrimaryKeyModel:
         id: PrimaryKey[UUID]
         name: str
         age: Optional[int]
 
+    @register
+    class CompositePrimaryKeyModel:
+        id: PrimaryKey[UUID]
+        name: PrimaryKey[str]
+        age: Optional[int] = mapped_column(metadata={"is_primary_key": True})
+
 
 def test_crud_model(engine: Engine, session: Session) -> None:
     @register
     class Model:
-        id: UUID = field(metadata={"primary_key": True})
+        id: PrimaryKey[UUID]
         name: str
-        age: Optional[int]
+        age: Optional[int] = mapped_column(metadata={"hello": "world"})
+
+    assert isinstance(Model.__table__, Table)  # type: ignore[attr-defined]
 
     mapper_registry.metadata.create_all(engine)
 
@@ -49,9 +65,9 @@ def test_crud_model(engine: Engine, session: Session) -> None:
 
     assert session.query(Model).all() == models
     assert session.query(Model).where(Model.age == None).all() == models[:1]  # noqa: E711
-    assert session.query(Model).where(Model.age == 20).all() == models[1:]
+    assert session.query(Model).where(col(Model.age) == 20).all() == models[1:]
 
-    updated_model = session.query(Model).where(Model.age == 20).one()
+    updated_model: Model = session.query(Model).where(Model.age == 20).one()
     updated_model.age = 25
     session.add(updated_model)
 

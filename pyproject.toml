@@ -1,0 +1,47 @@
+[tool.black]
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+)
+'''
+include = '\.pyi?$'
+line-length = 120
+target-version = ['py37']
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "def __str__",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "if typing.TYPE_CHECKING:",
+  "overload",
+]
+
+[tool.coverage.run]
+branch = true
+omit = ["tests/fixtures/*"]
+source = ["db_model"]
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+plugins = ["db_model/ext/mypy_plugin.py"]
+
+[tool.pytest.ini_options]
+addopts = "-ra -v --durations=5 --cov-report term --cov=db_model"

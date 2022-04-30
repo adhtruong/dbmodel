@@ -1,26 +1,20 @@
 import typing
-from dataclasses import MISSING, Field, dataclass, field, fields
+from dataclasses import MISSING, Field
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
     Generic,
-    Iterable,
     Literal,
     Mapping,
-    NoReturn,
     Optional,
     TypeVar,
     Union,
     overload,
 )
 
-from sqlalchemy import Column, Table, over
-from sqlalchemy.orm import registry
 from sqlalchemy.sql.elements import ColumnClause
-from typing_extensions import Annotated
-
-from db_model.types_ import get_type
+from sqlalchemy.types import TypeEngine
 
 _T = TypeVar("_T")
 
@@ -31,20 +25,21 @@ class Mapped(Generic[_T]):
     if TYPE_CHECKING:
 
         @typing.overload
-        def __get__(self, instance: Literal[None], owner: Any) -> ColumnClause[_T]:
+        def __get__(self, instance: Literal[None], owner: Any) -> ColumnClause[TypeEngine[_T]]:
             ...
 
         @typing.overload
         def __get__(self, instance: object, owner: Any) -> _T:
             ...
 
-        def __get__(self, instance: object, owner: Any) -> Union[type[_T], _T]:
+        def __get__(
+            self,
+            instance: object,
+            owner: Any,
+        ) -> Union[ColumnClause[TypeEngine[_T]], _T]:
             ...
 
         def __set__(self, instance: Any, value: _T) -> None:
-            ...
-
-        def __delete__(self, instance: Any):
             ...
 
 
@@ -57,7 +52,7 @@ def mapped_column(
     hash: Optional[bool] = ...,
     compare: bool = ...,
     metadata: Optional[Mapping[str, Any]] = ...,
-) -> Mapped[_T]:
+) -> _T:
     ...
 
 
@@ -70,7 +65,7 @@ def mapped_column(
     hash: Optional[bool] = ...,
     compare: bool = ...,
     metadata: Optional[Mapping[str, Any]] = ...,
-) -> Mapped[_T]:
+) -> _T:
     ...
 
 
@@ -82,7 +77,7 @@ def mapped_column(
     hash: Optional[bool] = ...,
     compare: bool = ...,
     metadata: Optional[Mapping[str, Any]] = ...,
-) -> Mapped[_T]:
+) -> _T:
     ...
 
 
@@ -95,8 +90,8 @@ def mapped_column(
     hash=None,
     compare=True,
     metadata=None,
-) -> Mapped[_T]:
-    return Field(
+) -> _T:
+    return Field(  # type: ignore[return-value]
         default=default,
         default_factory=default_factory,
         init=init,
@@ -105,3 +100,7 @@ def mapped_column(
         compare=compare,
         metadata=metadata,
     )
+
+
+def col(c: _T, /) -> ColumnClause[TypeEngine[_T]]:
+    return c  # type: ignore[return-value]

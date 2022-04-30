@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, TypeVar, Union
 
 from sqlalchemy import Column, Table
 from sqlalchemy.orm import registry
-from sqlalchemy.orm.attributes import Mapped as _Mapped
 from typing_extensions import Annotated
 
-from db_model.types_ import get_type
+from db_model.field import Mapped as _Mapped
+from db_model.types_ import get_column
 
 _T = TypeVar("_T")
 
@@ -58,11 +58,4 @@ def register(cls: type[_T]) -> type[_T]:
 
 
 def get_columns(cls) -> Iterable[Column]:
-    for field in fields(cls):
-        column_info = get_type(field)
-        yield Column(
-            field.name,
-            column_info.type_,
-            nullable=column_info.is_optional,
-            primary_key=column_info.is_primary_key,
-        )
+    yield from map(get_column, fields(cls))
