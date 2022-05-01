@@ -27,7 +27,6 @@ repos:
     entry: black
     language: python
     types: [python]
-    language_version: python3.8
     args: [--quiet]
   - id: flake8
     name: flake8
