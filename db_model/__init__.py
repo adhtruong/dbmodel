@@ -7,7 +7,8 @@ __all__ = (
     "Mapped",
     "PrimaryKey",
     "mapped_column",
+    "DBModel",
 )
 
-from .core import Mapped, register
+from .core import DBModel, Mapped, register
 from .field import PrimaryKey, mapped_column

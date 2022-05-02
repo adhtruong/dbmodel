@@ -14,15 +14,22 @@
 
 Utils and wrappers for SQLAlchemy.
 
-```python
-from db_model import register, PrimaryKey
+## Installation
 
-# Make SQLAlchemy model based on annotations.
-@register
-class MyModel:
+```bash
+pip install git+https://github.com/adhtruong/dbmodel
+```
+
+## Usage
+
+```python
+from db_model import DBModel, PrimaryKey
+
+
+class MyModel(DBModel):
+    """Defined table of my_model with primary key id and name column."""
     id: PrimaryKey[int]
     name: str
-
 ```
 
 ## TODO
