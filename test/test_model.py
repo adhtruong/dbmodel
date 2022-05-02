@@ -3,7 +3,7 @@ from typing import Iterator, Optional, Union
 from uuid import UUID, uuid4
 
 import pytest
-from sqlalchemy import Table, create_engine, select
+from sqlalchemy import ForeignKeyConstraint, Table, create_engine, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session
@@ -20,9 +20,15 @@ def fixture_engine() -> Engine:
 
 @pytest.fixture(name="session")
 def fixture_session(engine: Engine) -> Iterator[Session]:
+    mapper_registry.metadata.clear()
+    mapper_registry.dispose()
+
     connection = engine.connect()
     with Session(bind=connection) as session:
         yield session
+
+    mapper_registry.metadata.clear()
+    mapper_registry.dispose()
 
 
 def test_primary_key() -> None:
@@ -95,6 +101,38 @@ def test_foreign_key(engine: Engine, session: Session) -> None:
 
     assert session.execute(
         select(Book, Author).join(Author),
+    ).all() == [(book, author)]
+
+
+def test_composite_foreign_key(engine: Engine, session: Session) -> None:
+    class Author(DBModel):
+        first_name: PrimaryKey[str]
+        last_name: PrimaryKey[str]
+        age: Optional[int]
+
+    class Book(DBModel):
+        name: PrimaryKey[str]
+        author_first_name: str
+        author_last_name: str
+
+        __tableargs__ = ForeignKeyConstraint(
+            ("author_first_name", "author_last_name"),
+            (Author.first_name, Author.last_name),
+        )
+
+    mapper_registry.metadata.create_all(engine)
+
+    author = Author(first_name="John", last_name="Smith", age=20)
+    book = Book(name="My Book", author_first_name="John", author_last_name="Smith")
+
+    session.add(author)
+    session.add(book)
+
+    assert session.execute(
+        select(Book, Author).where(
+            Book.author_first_name == Author.first_name,
+            Book.author_last_name == Author.last_name,
+        ),
     ).all() == [(book, author)]
 
 
