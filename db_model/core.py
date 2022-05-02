@@ -55,7 +55,7 @@ def register(cls: type[_T]) -> type[_T]:
             table_name,
             mapper_registry.metadata,
             *columns,
-            **table_args,
+            *table_args,
         ),
     )
     return cls
@@ -68,6 +68,7 @@ def register(cls: type[_T]) -> type[_T]:
 class DBModel:
     if TYPE_CHECKING:
         __table__: ClassVar[Table]
+        __table_args__: ClassVar[tuple]
 
     def __init_subclass__(cls) -> None:
         register(cls)

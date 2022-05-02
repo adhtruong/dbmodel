@@ -115,9 +115,11 @@ def test_composite_foreign_key(engine: Engine, session: Session) -> None:
         author_first_name: str
         author_last_name: str
 
-        __tableargs__ = ForeignKeyConstraint(
-            ("author_first_name", "author_last_name"),
-            (Author.first_name, Author.last_name),
+        __table_args__ = (
+            ForeignKeyConstraint(
+                ("author_first_name", "author_last_name"),
+                (Author.first_name, Author.last_name),
+            ),
         )
 
     mapper_registry.metadata.create_all(engine)
