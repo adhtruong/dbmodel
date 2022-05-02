@@ -1,3 +1,30 @@
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.2,<4"]
+
+[project]
+authors = [
+  {name = "Andrew Truong"},
+]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+  "sqlalchemy>=1.4.36",
+  "sqlalchemy-utils>=0.38.2",
+  "typing-extensions>=4.2.0",
+]
+dynamic = ["version", "description"]
+name = "db_model"
+readme = "README.md"
+requires-python = "~=3.9"
+
+[project.optional-dependencies]
+test = [
+  "pytest >=2.7.3",
+  "pytest-cov",
+]
+
 [tool.black]
 exclude = '''
 (

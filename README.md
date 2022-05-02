@@ -33,7 +33,7 @@ class MyModel:
 - [ ] Allow better configuration
 - [ ] Improve mypy plugin
   - Intercept dataclass transformer so descriptor can be transformed before generating init.
-- [ ] Make pip installable
+- [x] Make pip installable
 
 ## Development Set Up
 

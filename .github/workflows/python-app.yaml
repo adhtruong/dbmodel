@@ -27,9 +27,15 @@ jobs:
     - name: Run pre-commits
       run: |
         pre-commit run -a
+    - name: Install Flit
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: pip install flit
+    - name: Install Dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: flit install --symlink
     - name: Test with pytest
       run: |
-        pytest --cov-report=xml
+        pytest --cov-report=xml test
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2.1.0
       with:
