@@ -2,6 +2,7 @@ import typing
 from dataclasses import MISSING, Field
 from typing import (
     TYPE_CHECKING,
+    Annotated,
     Any,
     Callable,
     Generic,
@@ -13,10 +14,13 @@ from typing import (
     overload,
 )
 
+from sqlalchemy import ForeignKey
 from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.types import TypeEngine
 
 _T = TypeVar("_T")
+
+PrimaryKey = Annotated[_T, "PrimaryKey"]
 
 
 class Mapped(Generic[_T]):
@@ -53,6 +57,7 @@ def mapped_column(
     compare: bool = ...,
     metadata: Optional[Mapping[str, Any]] = ...,
     is_primary_key: bool = False,
+    foreign_key: Optional[Union[str, ForeignKey, PrimaryKey[_T]]] = ...,
 ) -> _T:
     ...
 
@@ -67,6 +72,7 @@ def mapped_column(
     compare: bool = ...,
     metadata: Optional[Mapping[str, Any]] = ...,
     is_primary_key: bool = False,
+    foreign_key: Optional[Union[str, ForeignKey, PrimaryKey[_T]]] = ...,
 ) -> _T:
     ...
 
@@ -80,6 +86,7 @@ def mapped_column(
     compare: bool = ...,
     metadata: Optional[Mapping[str, Any]] = ...,
     is_primary_key: bool = False,
+    foreign_key: Optional[Union[str, ForeignKey, PrimaryKey[_T]]] = ...,
 ) -> _T:
     ...
 
@@ -94,6 +101,7 @@ def mapped_column(
     compare=True,
     metadata=None,
     is_primary_key: bool = False,
+    foreign_key: Optional[Union[str, ForeignKey, PrimaryKey[_T]]] = None,
 ) -> _T:
     if metadata is None:
         metadata = {}
@@ -104,7 +112,11 @@ def mapped_column(
         repr=repr,
         hash=hash,
         compare=compare,
-        metadata=metadata | {"is_primary_key": is_primary_key},
+        metadata=metadata
+        | {
+            "is_primary_key": is_primary_key,
+            "foreign_key": foreign_key,
+        },
     )
 
 

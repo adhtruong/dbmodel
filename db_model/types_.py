@@ -1,9 +1,9 @@
 import uuid
 from dataclasses import Field
 from datetime import date, datetime
-from typing import Any, Dict, Type, TypeVar, Union, get_args, get_origin
+from typing import Dict, Type, TypeVar, Union, get_args, get_origin
 
-from sqlalchemy import Column, Date, DateTime, Integer, String
+from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String
 from sqlalchemy.types import TypeDecorator, TypeEngine
 from sqlalchemy_utils.types.json import JSONType  # type: ignore
 from sqlalchemy_utils.types.uuid import UUIDType  # type: ignore
@@ -11,7 +11,7 @@ from typing_extensions import Annotated
 
 _T = TypeVar("_T")
 
-_COLUMN_TYPE_MAPPING: Dict[Type[Any], Type[TypeEngine]] = {
+_COLUMN_TYPE_MAPPING: Dict[Type, Type[Union[TypeDecorator, TypeEngine]]] = {
     int: Integer,
     str: String,
     date: Date,
@@ -21,7 +21,7 @@ _COLUMN_TYPE_MAPPING: Dict[Type[Any], Type[TypeEngine]] = {
 }
 
 
-def register_type(type_: Type, db_type: type[TypeDecorator]) -> None:
+def register_type(type_: type[_T], db_type: type[TypeDecorator[_T]]) -> None:
     _COLUMN_TYPE_MAPPING[type_] = db_type
 
 
@@ -34,11 +34,19 @@ def get_column(field: Field) -> Column[TypeEngine[_T]]:
     type_ = field.type if is_annotated else get_args(field.type)[0]
     is_primary_key = field.metadata.get("is_primary_key", False) or "PrimaryKey" in get_args(field.type)[1:]
 
+    args: tuple = ()
+    foreign_key = field.metadata.get("foreign_key")
+    if foreign_key is not None:
+        if not isinstance(foreign_key, ForeignKey):
+            foreign_key = ForeignKey(foreign_key)
+        args += (foreign_key,)
+
     if not is_optional(type_):
         try:
             return Column(
                 field.name,
                 _COLUMN_TYPE_MAPPING[type_](),
+                *args,
                 nullable=False,
                 primary_key=is_primary_key,
             )
@@ -52,6 +60,7 @@ def get_column(field: Field) -> Column[TypeEngine[_T]]:
     return Column(
         field.name,
         _COLUMN_TYPE_MAPPING[actual_type]().evaluates_none(),
+        *args,
         nullable=True,
         primary_key=is_primary_key,
     )

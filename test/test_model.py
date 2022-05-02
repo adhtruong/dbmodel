@@ -3,12 +3,12 @@ from typing import Iterator, Optional, Union
 from uuid import UUID, uuid4
 
 import pytest
-from sqlalchemy import Table, create_engine
+from sqlalchemy import Table, create_engine, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session
 
-from db_model import PrimaryKey, register
+from db_model import Mapped, PrimaryKey, register
 from db_model.core import DBModel, mapper_registry
 from db_model.field import col, mapped_column
 
@@ -43,7 +43,7 @@ def test_primary_key() -> None:
     class CompositePrimaryKeyModel:
         id: PrimaryKey[UUID]
         name: PrimaryKey[str]
-        age: Optional[int] = mapped_column(is_primary_key=True)
+        age: Mapped[Optional[int]] = mapped_column(is_primary_key=True)
 
 
 def test_crud_model(engine: Engine, session: Session) -> None:
@@ -70,7 +70,32 @@ def test_crud_model(engine: Engine, session: Session) -> None:
     updated_model.age = 25
     session.add(updated_model)
 
+    assert session.get(Model, updated_model.id) == updated_model
     assert session.query(Model).where(Model.age == 25).one() == updated_model
+
+
+def test_foreign_key(engine: Engine, session: Session) -> None:
+    class Author(DBModel):
+        id: PrimaryKey[UUID]
+        name: str
+        age: Optional[int]
+
+    class Book(DBModel):
+        id: PrimaryKey[UUID]
+        name: str
+        author_id: UUID = mapped_column(foreign_key=Author.id)
+
+    mapper_registry.metadata.create_all(engine)
+
+    author = Author(id=uuid4(), name="My Author", age=20)
+    book = Book(id=uuid4(), name="My Book", author_id=author.id)
+
+    session.add(author)
+    session.add(book)
+
+    assert session.execute(
+        select(Book, Author).join(Author),
+    ).all() == [(book, author)]
 
 
 def test_invalid_model() -> None:
