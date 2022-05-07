@@ -1,5 +1,5 @@
 import typing
-from dataclasses import MISSING, Field
+from dataclasses import MISSING, field
 from typing import (
     TYPE_CHECKING,
     Annotated,
@@ -105,7 +105,7 @@ def mapped_column(
 ) -> _T:
     if metadata is None:
         metadata = {}
-    return Field(  # type: ignore[return-value]
+    return field(  # type: ignore[call-overload,return-value]
         default=default,
         default_factory=default_factory,
         init=init,

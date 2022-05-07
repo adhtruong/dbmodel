@@ -1,7 +1,9 @@
+import json
 from datetime import date
 from typing import Iterator, Optional, Union
 from uuid import UUID, uuid4
 
+import pydantic
 import pytest
 from sqlalchemy import ForeignKeyConstraint, Table, create_engine, select
 from sqlalchemy.engine import Engine
@@ -153,3 +155,56 @@ def test_invalid_model() -> None:
         @register
         class OptionalUnionType:
             name: Union[str, date, None]
+
+
+def test_overriden_transformer(session: Session, engine: Engine) -> None:
+    class Author(DBModel):
+        __transformer__ = pydantic.dataclasses.dataclass
+
+        id: PrimaryKey[int]
+        name: str
+        age: Optional[int]
+
+    assert hasattr(Author, "__pydantic_model__")
+    with pytest.raises(pydantic.ValidationError):
+        Author(id=1, name="Name", age="Invalid")  # type: ignore[arg-type]
+
+    author = Author(id=1, name="Name", age=None)
+    assert (
+        json.dumps(
+            author,
+            default=pydantic.json.pydantic_encoder,
+        )
+        == '{"id": 1, "name": "Name", "age": null}'
+    )
+
+    mapper_registry.metadata.create_all(engine)
+    session.add(author)
+
+    assert session.query(Author).all() == [author]
+
+
+def test_inheritance(session: Session, engine: Engine) -> None:
+    class Base(DBModel, abstract=True):
+        id: PrimaryKey[int]
+        name: str
+
+    class Model1(Base):
+        pass
+
+    class Model2(Base):
+        pass
+
+    mapper_registry.metadata.create_all(engine)
+    assert len(mapper_registry.metadata.tables) == 2
+
+    session.add_all(
+        [
+            Model1(id=1, name="Hello"),
+            Model2(id=1, name="Hello"),
+            Model2(id=2, name="World"),
+        ]
+    )
+    session.flush()
+    assert session.query(Model1).count() == 1
+    assert session.query(Model2).count() == 2

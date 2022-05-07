@@ -1,5 +1,14 @@
 from dataclasses import Field, dataclass, field, fields
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Iterable, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    ClassVar,
+    Iterable,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from sqlalchemy import Column, Table
 from sqlalchemy.orm import registry
@@ -43,21 +52,24 @@ def get_columns(cls) -> Iterable[Column]:
     field_descriptors=(field, Field, mapped_column),
     kw_only_default=True,
 )
-def register(cls: type[_T]) -> type[_T]:
-    cls = dataclass(cls)
-    table_name = getattr(cls, "__tablename__", cls.__name__.lower())
-    table_args = getattr(cls, "__table_args__", {})
-    columns = get_columns(cls)
+def register(cls: type[_T], abstract: bool = False) -> type[_T]:
+    transformer = getattr(cls, "__transformer__", dataclass)
+    cls = transformer(cls)
 
-    mapper_registry.map_imperatively(
-        cls,
-        Table(
-            table_name,
-            mapper_registry.metadata,
-            *columns,
-            *table_args,
-        ),
-    )
+    if not abstract:
+        table_name = getattr(cls, "__tablename__", cls.__name__.lower())
+        table_args = getattr(cls, "__table_args__", {})
+        columns = get_columns(cls)
+
+        mapper_registry.map_imperatively(
+            cls,
+            Table(
+                table_name,
+                mapper_registry.metadata,
+                *columns,
+                *table_args,
+            ),
+        )
     return cls
 
 
@@ -69,6 +81,7 @@ class DBModel:
     if TYPE_CHECKING:
         __table__: ClassVar[Table]
         __table_args__: ClassVar[tuple]
+        __transformer__: ClassVar[Callable[[Type], Type]]
 
-    def __init_subclass__(cls) -> None:
-        register(cls)
+    def __init_subclass__(cls, abstract: bool = False) -> None:
+        register(cls, abstract=abstract)
