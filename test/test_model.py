@@ -5,14 +5,16 @@ from uuid import UUID, uuid4
 
 import pydantic
 import pytest
-from sqlalchemy import ForeignKeyConstraint, Table, create_engine, select
+from sqlalchemy import ForeignKeyConstraint, MetaData, Table, create_engine, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session
 
 from db_model import Mapped, PrimaryKey, register
-from db_model.core import DBModel, mapper_registry
+from db_model.core import DBModel, get_metadata
 from db_model.field import col, mapped_column
+
+metadata = get_metadata()
 
 
 @pytest.fixture(name="engine")
@@ -22,15 +24,13 @@ def fixture_engine() -> Engine:
 
 @pytest.fixture(name="session")
 def fixture_session(engine: Engine) -> Iterator[Session]:
-    mapper_registry.metadata.clear()
-    mapper_registry.dispose()
+    metadata.clear()
 
     connection = engine.connect()
     with Session(bind=connection) as session:
         yield session
 
-    mapper_registry.metadata.clear()
-    mapper_registry.dispose()
+    metadata.clear()
 
 
 def test_primary_key() -> None:
@@ -62,7 +62,7 @@ def test_crud_model(engine: Engine, session: Session) -> None:
 
     assert isinstance(Model.__table__, Table)
 
-    mapper_registry.metadata.create_all(engine)
+    metadata.create_all(engine)
 
     models = [
         Model(id=uuid4(), name="John", age=None),
@@ -93,7 +93,7 @@ def test_foreign_key(engine: Engine, session: Session) -> None:
         name: str
         author_id: UUID = mapped_column(foreign_key=Author.id)
 
-    mapper_registry.metadata.create_all(engine)
+    metadata.create_all(engine)
 
     author = Author(id=uuid4(), name="My Author", age=20)
     book = Book(id=uuid4(), name="My Book", author_id=author.id)
@@ -124,7 +124,7 @@ def test_composite_foreign_key(engine: Engine, session: Session) -> None:
             ),
         )
 
-    mapper_registry.metadata.create_all(engine)
+    metadata.create_all(engine)
 
     author = Author(first_name="John", last_name="Smith", age=20)
     book = Book(name="My Book", author_first_name="John", author_last_name="Smith")
@@ -178,7 +178,7 @@ def test_overriden_transformer(session: Session, engine: Engine) -> None:
         == '{"id": 1, "name": "Name", "age": null}'
     )
 
-    mapper_registry.metadata.create_all(engine)
+    metadata.create_all(engine)
     session.add(author)
 
     assert session.query(Author).all() == [author]
@@ -195,8 +195,8 @@ def test_inheritance(session: Session, engine: Engine) -> None:
     class Model2(Base):
         pass
 
-    mapper_registry.metadata.create_all(engine)
-    assert len(mapper_registry.metadata.tables) == 2
+    metadata.create_all(engine)
+    assert len(metadata.tables) == 2
 
     session.add_all(
         [
@@ -205,6 +205,22 @@ def test_inheritance(session: Session, engine: Engine) -> None:
             Model2(id=2, name="World"),
         ]
     )
-    session.flush()
     assert session.query(Model1).count() == 1
     assert session.query(Model2).count() == 2
+
+
+def test_metadata() -> None:
+    class Base(DBModel, abstract=True):
+        id: PrimaryKey[int]
+        name: str
+
+    class Model1(Base, metadata=metadata):
+        pass
+
+    other_metadata = MetaData()
+
+    class Model2(Base, metadata=other_metadata):
+        pass
+
+    assert len(metadata.tables) == 1
+    assert len(other_metadata.tables) == 1

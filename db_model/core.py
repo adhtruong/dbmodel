@@ -10,7 +10,7 @@ from typing import (
     Union,
 )
 
-from sqlalchemy import Column, Table
+from sqlalchemy import Column, MetaData, Table
 from sqlalchemy.orm import registry
 from typing_extensions import Annotated
 
@@ -29,7 +29,11 @@ else:
 
 PrimaryKey = Annotated[_T, "PrimaryKey"]
 
-mapper_registry = registry()
+_metadata = MetaData()
+
+
+def get_metadata() -> MetaData:
+    return _metadata
 
 
 def __dataclass_transform__(
@@ -52,20 +56,22 @@ def get_columns(cls) -> Iterable[Column]:
     field_descriptors=(field, Field, mapped_column),
     kw_only_default=True,
 )
-def register(cls: type[_T], abstract: bool = False) -> type[_T]:
+def register(cls: type[_T], abstract: bool = False, metadata: MetaData = None) -> type[_T]:
     transformer = getattr(cls, "__transformer__", dataclass)
     cls = transformer(cls)
 
     if not abstract:
+        if metadata is None:
+            metadata = _metadata
         table_name = getattr(cls, "__tablename__", cls.__name__.lower())
         table_args = getattr(cls, "__table_args__", {})
         columns = get_columns(cls)
 
-        mapper_registry.map_imperatively(
+        registry(metadata).map_imperatively(
             cls,
             Table(
                 table_name,
-                mapper_registry.metadata,
+                metadata,
                 *columns,
                 *table_args,
             ),
@@ -83,5 +89,5 @@ class DBModel:
         __table_args__: ClassVar[tuple]
         __transformer__: ClassVar[Callable[[Type], Type]]
 
-    def __init_subclass__(cls, abstract: bool = False) -> None:
-        register(cls, abstract=abstract)
+    def __init_subclass__(cls, *, metadata: MetaData = None, abstract: bool = False) -> None:
+        register(cls, metadata=metadata, abstract=abstract)
