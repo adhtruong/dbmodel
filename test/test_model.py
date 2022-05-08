@@ -85,26 +85,29 @@ def test_crud_model(engine: Engine, session: Session) -> None:
 
 def test_foreign_key(engine: Engine, session: Session) -> None:
     class Author(DBModel):
-        id: PrimaryKey[UUID]
+        id: PrimaryKey[int]
         name: str
         age: Optional[int]
 
     class Book(DBModel):
-        id: PrimaryKey[UUID]
+        id: PrimaryKey[int]
         name: str
-        author_id: UUID = mapped_column(foreign_key=Author.id)
+        author_id: int = mapped_column(foreign_key=Author.id)
 
     metadata.create_all(engine)
 
-    author = Author(id=uuid4(), name="My Author", age=20)
-    book = Book(id=uuid4(), name="My Book", author_id=author.id)
+    author = Author(id=1, name="My Author", age=20)
+    book = Book(id=1, name="My Book", author_id=author.id)
+    other_author = Author(id=2, name="Other Author", age=20)
 
-    session.add(author)
-    session.add(book)
+    session.add_all((author, book, other_author))
 
     assert session.execute(
         select(Book, Author).join(Author),
     ).all() == [(book, author)]
+    assert session.execute(
+        select(Author, Book).outerjoin(Book).order_by(Author.id),
+    ).all() == [(author, book), (other_author, None)]
 
 
 def test_composite_foreign_key(engine: Engine, session: Session) -> None:

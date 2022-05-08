@@ -120,5 +120,5 @@ def mapped_column(
     )
 
 
-def col(c: _T, /) -> ColumnClause[TypeEngine[_T]]:
+def col(c: Union[PrimaryKey[_T], Mapped[_T], _T], /) -> ColumnClause[TypeEngine[_T]]:
     return c  # type: ignore[return-value]
