@@ -70,16 +70,17 @@ def test_crud_model(engine: Engine, session: Session) -> None:
     ]
     session.add_all(models)
 
-    assert session.query(Model).all() == models
-    assert session.query(Model).where(Model.age == None).all() == models[:1]  # noqa: E711
-    assert session.query(Model).where(col(Model.age) == 20).all() == models[1:]
+    assert session.execute(select(Model)).scalars().all() == models
+    assert session.execute(select(Model).where(Model.age == None)).scalars().all() == models[:1]  # noqa: E711
+    assert session.execute(select(Model).where(Model.age == 20)).scalars().all() == models[1:]
 
-    updated_model: Model = session.query(Model).where(Model.age == 20).one()
+    updated_model: Model = session.execute(select(Model).filter(Model.age == 20)).scalar_one()
     updated_model.age = 25
     session.add(updated_model)
 
     assert session.get(Model, updated_model.id) == updated_model
-    assert session.query(Model).where(Model.age == 25).one() == updated_model
+    assert session.execute(select(Model).where(Model.age == 20)).all() == []
+    assert set(session.execute(select(col(Model.id))).all()) == {(model.id,) for model in models}
 
 
 def test_foreign_key(engine: Engine, session: Session) -> None:
@@ -134,7 +135,7 @@ def test_composite_foreign_key(engine: Engine, session: Session) -> None:
 
     assert session.execute(
         select(Book, Author).where(
-            Book.author_first_name == Author.first_name,
+            col(Book.author_first_name) == Author.first_name,
             Book.author_last_name == Author.last_name,
         ),
     ).all() == [(book, author)]

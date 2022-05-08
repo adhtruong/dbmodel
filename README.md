@@ -28,6 +28,7 @@ from db_model import DBModel, PrimaryKey
 
 class MyModel(DBModel):
     """Defined table of my_model with primary key id and name column."""
+
     id: PrimaryKey[int]
     name: str
 ```
@@ -35,8 +36,8 @@ class MyModel(DBModel):
 ## TODO
 
 - [ ] Add documentation
-- [ ] Add testing
-- [ ] Add main decorator
+- [x] Add testing
+- [x] Add main decorator
 - [ ] Allow better configuration
 - [ ] Improve mypy plugin
   - Intercept dataclass transformer so descriptor can be transformed before generating init.

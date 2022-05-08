@@ -28,6 +28,10 @@ repos:
     language: python
     types: [python]
     args: [--quiet]
+  - id: blacken-docs
+    name: blacken-docs
+    language: python
+    entry: blacken-docs
   - id: flake8
     name: flake8
     entry: flake8
