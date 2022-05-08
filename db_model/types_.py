@@ -5,9 +5,9 @@ from typing import Dict, Type, TypeVar, Union, get_args, get_origin
 
 from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String
 from sqlalchemy.types import TypeDecorator, TypeEngine
-from sqlalchemy_utils.types.json import JSONType  # type: ignore
-from sqlalchemy_utils.types.uuid import UUIDType  # type: ignore
 from typing_extensions import Annotated
+
+from db_model.sa_types import GUID
 
 _T = TypeVar("_T")
 
@@ -16,8 +16,7 @@ _COLUMN_TYPE_MAPPING: Dict[Type, Type[Union[TypeDecorator, TypeEngine]]] = {
     str: String,
     date: Date,
     datetime: DateTime,
-    dict: JSONType,
-    uuid.UUID: UUIDType,
+    uuid.UUID: GUID,
 }
 
 
