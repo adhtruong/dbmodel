@@ -11,7 +11,7 @@ from typing import (
 )
 
 from sqlalchemy import Column, MetaData, Table
-from sqlalchemy.orm import registry
+from sqlalchemy.orm import registry as Registry
 from typing_extensions import Annotated
 
 from db_model.field import Mapped as _Mapped
@@ -27,9 +27,8 @@ else:
     Mapped = Annotated[_T, "Mapped"]
 
 
-PrimaryKey = Annotated[_T, "PrimaryKey"]
-
 _metadata = MetaData()
+_default_registry = Registry()
 
 
 def get_metadata() -> MetaData:
@@ -49,25 +48,28 @@ def __dataclass_transform__(
 
 
 def get_columns(cls) -> Iterable[Column]:
-    yield from map(get_column, fields(cls))
+    yield from filter(lambda c: c is not None, map(get_column, fields(cls)))
 
 
 @__dataclass_transform__(
     field_descriptors=(field, Field, mapped_column),
     kw_only_default=True,
 )
-def register(cls: type[_T], abstract: bool = False, metadata: MetaData = None) -> type[_T]:
+def register(
+    cls: type[_T],
+    metadata: MetaData = _metadata,
+    registry: Registry = _default_registry,
+    abstract: bool = False,
+) -> type[_T]:
     transformer = getattr(cls, "__transformer__", dataclass)
     cls = transformer(cls)
 
     if not abstract:
-        if metadata is None:
-            metadata = _metadata
         table_name = getattr(cls, "__tablename__", cls.__name__.lower())
         table_args = getattr(cls, "__table_args__", {})
         columns = get_columns(cls)
 
-        registry(metadata).map_imperatively(
+        registry.map_imperatively(
             cls,
             Table(
                 table_name,
@@ -89,5 +91,16 @@ class DBModel:
         __table_args__: ClassVar[tuple]
         __transformer__: ClassVar[Callable[[Type], Type]]
 
-    def __init_subclass__(cls, *, metadata: MetaData = None, abstract: bool = False) -> None:
-        register(cls, metadata=metadata, abstract=abstract)
+    def __init_subclass__(
+        cls,
+        *,
+        metadata: MetaData = _metadata,
+        registry: Registry = _default_registry,
+        abstract: bool = False,
+    ) -> None:
+        register(
+            cls,
+            metadata=metadata,
+            registry=registry,
+            abstract=abstract,
+        )

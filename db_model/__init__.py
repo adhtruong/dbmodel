@@ -10,5 +10,6 @@ __all__ = (
     "DBModel",
 )
 
+
 from .core import DBModel, Mapped, register
 from .field import PrimaryKey, mapped_column

@@ -1,5 +1,4 @@
-from db_model import PrimaryKey
-from db_model.core import DBModel, register
+from db_model import DBModel, PrimaryKey, register
 
 
 class MyModel(DBModel):
