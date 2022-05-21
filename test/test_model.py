@@ -11,7 +11,7 @@ from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session
 
 from db_model import Mapped, PrimaryKey, register
-from db_model.core import DBModel, get_metadata
+from db_model.core import DBModel, _default_registry, get_metadata
 from db_model.field import col, mapped_column
 
 metadata = get_metadata()
@@ -24,12 +24,14 @@ def fixture_engine() -> Engine:
 
 @pytest.fixture(name="session")
 def fixture_session(engine: Engine) -> Iterator[Session]:
+    _default_registry.dispose()
     metadata.clear()
 
     connection = engine.connect()
     with Session(bind=connection) as session:
         yield session
 
+    _default_registry.dispose()
     metadata.clear()
 
 
