@@ -117,8 +117,8 @@ def mapped_column(
         repr=repr,
         hash=hash,
         compare=compare,
-        metadata=metadata
-        | {
+        metadata={
+            **metadata,
             "is_primary_key": is_primary_key,
             "foreign_key": foreign_key,
         },
