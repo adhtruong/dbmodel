@@ -47,8 +47,10 @@ def __dataclass_transform__(
     return lambda a: a
 
 
-def get_columns(cls) -> Iterable[Column]:
-    yield from filter(lambda c: c is not None, map(get_column, fields(cls)))
+def get_columns(cls: type) -> Iterable[Column]:
+    properties = getattr(cls, "__mapper_args__", {}).get("properties", {})
+    fields_ = filter(lambda field: field.name not in properties, fields(cls))
+    yield from map(get_column, fields_)
 
 
 @__dataclass_transform__(
@@ -67,6 +69,7 @@ def register(
     if not abstract:
         table_name = getattr(cls, "__tablename__", cls.__name__.lower())
         table_args = getattr(cls, "__table_args__", {})
+        mapper_args = getattr(cls, "__mapper_args__", {})
         columns = get_columns(cls)
 
         registry.map_imperatively(
@@ -77,6 +80,7 @@ def register(
                 *columns,
                 *table_args,
             ),
+            **mapper_args,
         )
     return cls
 
@@ -90,6 +94,7 @@ class DBModel:
         __table__: ClassVar[Table]
         __table_args__: ClassVar[tuple]
         __transformer__: ClassVar[Callable[[Type], Type]]
+        __mapper_args__: ClassVar[dict[str, Any]]
 
     def __init_subclass__(
         cls,

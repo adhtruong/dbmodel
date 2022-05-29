@@ -1,6 +1,7 @@
 import json
+from dataclasses import field
 from datetime import date
-from typing import Iterator, Optional, Union
+from typing import Any, ClassVar, Iterator, List, Optional, Union
 from uuid import UUID, uuid4
 
 import pydantic
@@ -8,7 +9,7 @@ import pytest
 from sqlalchemy import ForeignKeyConstraint, MetaData, Table, create_engine, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ArgumentError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 
 from db_model import Mapped, PrimaryKey, register
 from db_model.core import DBModel, _default_registry, get_metadata
@@ -230,3 +231,33 @@ def test_metadata() -> None:
 
     assert len(metadata.tables) == 1
     assert len(other_metadata.tables) == 1
+
+
+def test_relationship(session: Session, engine: Engine) -> None:
+    class Author(DBModel):
+        id: PrimaryKey[int]
+        name: str
+        age: Optional[int]
+
+        books: List["Book"] = field(default_factory=list)  # noqa: F821
+
+        __mapper_args__: ClassVar[dict[str, Any]] = {
+            "properties": {
+                "books": relationship("Book"),
+            }
+        }
+
+    class Book(DBModel):
+        id: PrimaryKey[int]
+        name: str
+        author_id: int = mapped_column(foreign_key=Author.id)
+
+    metadata.create_all(engine)
+
+    author = Author(id=1, name="My Author", age=20)
+    book = Book(id=1, name="My Book", author_id=author.id)
+
+    session.add_all((author, book))
+    session.commit()
+    session.refresh(author)
+    assert author.books == [book]
