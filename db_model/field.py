@@ -1,4 +1,3 @@
-import typing
 from dataclasses import MISSING, field
 from typing import (
     TYPE_CHECKING,
@@ -28,11 +27,11 @@ class Mapped(Generic[_T]):
 
     if TYPE_CHECKING:
 
-        @typing.overload
+        @overload
         def __get__(self, instance: Literal[None], owner: Any) -> ColumnClause[TypeEngine[_T]]:
             ...
 
-        @typing.overload
+        @overload
         def __get__(self, instance: object, owner: Any) -> _T:
             ...
 

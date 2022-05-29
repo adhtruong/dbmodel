@@ -148,7 +148,7 @@ def test_composite_foreign_key(engine: Engine, session: Session) -> None:
 
 
 def test_invalid_model() -> None:
-    with pytest.raises(RuntimeError, match=r"Unable to map type typing.Union\[str, datetime.date\]"):
+    with pytest.raises(RuntimeError, match=r"Unable to process type typing.Union\[str, datetime.date\]"):
 
         @register
         class UnionType:
@@ -156,12 +156,21 @@ def test_invalid_model() -> None:
 
     with pytest.raises(
         RuntimeError,
-        match=r"Unable to process typing.Union\[str, datetime.date, NoneType\]",
+        match=r"Unable to process type typing.Union\[str, datetime.date, NoneType\]",
     ):
 
         @register
         class OptionalUnionType:
             name: Union[str, date, None]
+
+    with pytest.raises(
+        RuntimeError,
+        match=r"Unable to map type typing.List",
+    ):
+
+        @register
+        class ModelWithList:
+            name: List
 
 
 def test_overriden_transformer(session: Session, engine: Engine) -> None:
