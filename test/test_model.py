@@ -1,7 +1,7 @@
 import json
 from dataclasses import field
 from datetime import date
-from typing import Any, ClassVar, Iterator, List, Optional, Union
+from typing import Any, ClassVar, Dict, Iterator, List, Optional, Union
 from uuid import UUID, uuid4
 
 import pydantic
@@ -250,7 +250,7 @@ def test_relationship(session: Session, engine: Engine) -> None:
 
         books: List["Book"] = field(default_factory=list)  # noqa: F821
 
-        __mapper_args__: ClassVar[dict[str, Any]] = {
+        __mapper_args__: ClassVar[Dict[str, Any]] = {
             "properties": {
                 "books": relationship("Book"),
             }

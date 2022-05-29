@@ -4,7 +4,9 @@ from typing import (
     Any,
     Callable,
     ClassVar,
+    Dict,
     Iterable,
+    Tuple,
     Type,
     TypeVar,
     Union,
@@ -40,7 +42,7 @@ def __dataclass_transform__(
     eq_default: bool = True,
     order_default: bool = False,
     kw_only_default: bool = False,
-    field_descriptors: tuple[Union[type, Callable[..., Any]], ...] = (()),
+    field_descriptors: Tuple[Union[type, Callable[..., Any]], ...] = (()),
 ) -> Callable[[_T], _T]:
     # If used within a stub file, the following implementation can be
     # replaced with "...".
@@ -58,11 +60,11 @@ def get_columns(cls: type) -> Iterable[Column]:
     kw_only_default=True,
 )
 def register(
-    cls: type[_T],
+    cls: Type[_T],
     metadata: MetaData = _metadata,
     registry: Registry = _default_registry,
     abstract: bool = False,
-) -> type[_T]:
+) -> Type[_T]:
     transformer = getattr(cls, "__transformer__", dataclass)
     cls = transformer(cls)
 
@@ -94,7 +96,7 @@ class DBModel:
         __table__: ClassVar[Table]
         __table_args__: ClassVar[tuple]
         __transformer__: ClassVar[Callable[[Type], Type]]
-        __mapper_args__: ClassVar[dict[str, Any]]
+        __mapper_args__: ClassVar[Dict[str, Any]]
 
     def __init_subclass__(
         cls,

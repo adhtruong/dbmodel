@@ -20,7 +20,7 @@ _COLUMN_TYPE_MAPPING: Dict[Type, Type[Union[TypeDecorator, TypeEngine]]] = {
 }
 
 
-def register_type(type_: type[_T], db_type: type[TypeDecorator[_T]]) -> None:  # pragma: no cover
+def register_type(type_: Type[_T], db_type: Type[TypeDecorator[_T]]) -> None:  # pragma: no cover
     _COLUMN_TYPE_MAPPING[type_] = db_type
 
 
