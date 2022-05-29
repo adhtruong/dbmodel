@@ -16,7 +16,7 @@ dependencies = [
 dynamic = ["version", "description"]
 name = "db_model"
 readme = "README.md"
-requires-python = "~=3.9"
+requires-python = ">=3.8"
 
 [project.optional-dependencies]
 dev = [
@@ -55,7 +55,6 @@ exclude = '''
 '''
 include = '\.pyi?$'
 line-length = 120
-target-version = ['py39']
 
 [tool.coverage.report]
 exclude_lines = [

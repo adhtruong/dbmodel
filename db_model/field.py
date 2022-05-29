@@ -1,7 +1,6 @@
 from dataclasses import MISSING, field
 from typing import (
     TYPE_CHECKING,
-    Annotated,
     Any,
     Callable,
     Generic,
@@ -17,7 +16,14 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.types import TypeEngine
 
+try:
+    from typing_extensions import Annotated
+except ImportError:
+    from typing import Annotated  # type: ignore
+
+
 _T = TypeVar("_T")
+
 
 PrimaryKey = Annotated[_T, "PrimaryKey"]
 

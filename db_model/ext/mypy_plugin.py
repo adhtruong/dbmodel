@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Type
 
 from mypy.plugin import ClassDefContext, Plugin
 from mypy.plugins import dataclasses
@@ -20,5 +20,5 @@ class DBModelPlugin(Plugin):
         return None
 
 
-def plugin(_: str) -> type[Plugin]:
+def plugin(_: str) -> Type[Plugin]:
     return DBModelPlugin
