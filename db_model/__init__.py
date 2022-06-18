@@ -3,6 +3,7 @@
 __version__ = "0.0.0"
 
 __all__ = (
+    "col",
     "register",
     "Mapped",
     "PrimaryKey",
@@ -11,5 +12,5 @@ __all__ = (
 )
 
 
-from .core import DBModel, Mapped, register
-from .field import PrimaryKey, mapped_column
+from .core import DBModel, Mapped, get_metadata, get_registry, register
+from .field import PrimaryKey, col, mapped_column

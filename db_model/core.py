@@ -1,18 +1,9 @@
 from dataclasses import Field, dataclass, field, fields
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    ClassVar,
-    Iterable,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Dict, Iterable, Type, TypeVar
 
 from sqlalchemy import Column, MetaData, Table
 from sqlalchemy.orm import registry as Registry
-from typing_extensions import Annotated
+from typing_extensions import Annotated, dataclass_transform
 
 from db_model.field import Mapped as _Mapped
 from db_model.field import mapped_column
@@ -35,16 +26,8 @@ def get_metadata() -> MetaData:
     return _metadata
 
 
-def __dataclass_transform__(
-    *,
-    eq_default: bool = True,
-    order_default: bool = False,
-    kw_only_default: bool = False,
-    field_descriptors: tuple[Union[type, Callable[..., Any]], ...] = (()),
-) -> Callable[[_T], _T]:
-    # If used within a stub file, the following implementation can be
-    # replaced with "...".
-    return lambda a: a
+def get_registry() -> Registry:
+    return _default_registry
 
 
 def get_columns(cls: type) -> Iterable[Column]:
@@ -53,16 +36,16 @@ def get_columns(cls: type) -> Iterable[Column]:
     yield from map(get_column, fields_)
 
 
-@__dataclass_transform__(
+@dataclass_transform(
     field_descriptors=(field, Field, mapped_column),
     kw_only_default=True,
 )
 def register(
-    cls: type[_T],
+    cls: Type[_T],
     metadata: MetaData = _metadata,
     registry: Registry = _default_registry,
     abstract: bool = False,
-) -> type[_T]:
+) -> Type[_T]:
     transformer = getattr(cls, "__transformer__", dataclass)
     cls = transformer(cls)
 
@@ -85,7 +68,7 @@ def register(
     return cls
 
 
-@__dataclass_transform__(
+@dataclass_transform(
     field_descriptors=(field, Field, mapped_column),
     kw_only_default=True,
 )
@@ -94,7 +77,7 @@ class DBModel:
         __table__: ClassVar[Table]
         __table_args__: ClassVar[tuple]
         __transformer__: ClassVar[Callable[[Type], Type]]
-        __mapper_args__: ClassVar[dict[str, Any]]
+        __mapper_args__: ClassVar[Dict[str, Any]]
 
     def __init_subclass__(
         cls,

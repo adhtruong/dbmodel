@@ -11,9 +11,16 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session, relationship
 
-from db_model import Mapped, PrimaryKey, register
-from db_model.core import DBModel, _default_registry, get_metadata
-from db_model.field import col, mapped_column
+from db_model import (
+    DBModel,
+    Mapped,
+    PrimaryKey,
+    col,
+    get_metadata,
+    get_registry,
+    mapped_column,
+    register,
+)
 
 metadata = get_metadata()
 
@@ -25,14 +32,15 @@ def fixture_engine() -> Engine:
 
 @pytest.fixture(name="session")
 def fixture_session(engine: Engine) -> Iterator[Session]:
-    _default_registry.dispose()
+    registry = get_registry()
+    registry.dispose()
     metadata.clear()
 
     connection = engine.connect()
     with Session(bind=connection) as session:
         yield session
 
-    _default_registry.dispose()
+    registry.dispose()
     metadata.clear()
 
 
@@ -74,7 +82,7 @@ def test_crud_model(engine: Engine, session: Session) -> None:
     session.add_all(models)
 
     assert session.execute(select(Model)).scalars().all() == models
-    assert session.execute(select(Model).where(Model.age == None)).scalars().all() == models[:1]  # noqa: E711
+    assert session.execute(select(Model).where(col(Model.age) == None)).scalars().all() == models[:1]  # noqa: E711
     assert session.execute(select(Model).where(Model.age == 20)).scalars().all() == models[1:]
 
     updated_model: Model = session.execute(select(Model).filter(Model.age == 20)).scalar_one()
