@@ -1,15 +1,15 @@
 import json
 from dataclasses import field
 from datetime import date
-from typing import Any, ClassVar, Iterator, List, Optional, Union
+from typing import Any, ClassVar, List, Optional, Union
 from uuid import UUID, uuid4
 
 import pydantic
 import pytest
-from sqlalchemy import ForeignKeyConstraint, MetaData, Table, create_engine, select
+from sqlalchemy import ForeignKeyConstraint, MetaData, Table
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ArgumentError
-from sqlalchemy.orm import Session, relationship
+from sqlalchemy.orm import relationship
 
 from db_model import (
     DBModel,
@@ -17,31 +17,13 @@ from db_model import (
     PrimaryKey,
     col,
     get_metadata,
-    get_registry,
     mapped_column,
     register,
 )
+from db_model.orm import Session
+from db_model.sql import select
 
 metadata = get_metadata()
-
-
-@pytest.fixture(name="engine")
-def fixture_engine() -> Engine:
-    return create_engine("sqlite:///:memory:", future=True)
-
-
-@pytest.fixture(name="session")
-def fixture_session(engine: Engine) -> Iterator[Session]:
-    registry = get_registry()
-    registry.dispose()
-    metadata.clear()
-
-    connection = engine.connect()
-    with Session(bind=connection) as session:
-        yield session
-
-    registry.dispose()
-    metadata.clear()
 
 
 def test_primary_key() -> None:
@@ -81,11 +63,11 @@ def test_crud_model(engine: Engine, session: Session) -> None:
     ]
     session.add_all(models)
 
-    assert session.execute(select(Model)).scalars().all() == models
+    assert session.scalars(select(Model)).all() == models
     assert session.execute(select(Model).where(col(Model.age) == None)).scalars().all() == models[:1]  # noqa: E711
     assert session.execute(select(Model).where(Model.age == 20)).scalars().all() == models[1:]
 
-    updated_model: Model = session.execute(select(Model).filter(Model.age == 20)).scalar_one()
+    updated_model = session.execute(select(Model).filter(Model.age == 20)).scalars().one()
     updated_model.age = 25
     session.add(updated_model)
 
