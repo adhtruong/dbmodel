@@ -1,0 +1,31 @@
+from typing import Any, Generic, TypeVar, overload
+
+from sqlalchemy.sql import Select as _Select
+from sqlalchemy.sql.elements import ColumnClause
+from sqlalchemy.types import TypeEngine
+
+Ts = TypeVar("Ts", bound=tuple)
+
+
+class Select(_Select, Generic[Ts]):
+    inherit_cache = True
+
+
+{% for i in range(number_of_types) %}
+_TVal_{{ i }} = TypeVar("_TVal_{{ i }}")
+{%- endfor %}
+
+{% for signature in signatures %}
+
+@overload
+def select(
+    {% for arg in signature[0] %}{{ arg.name }}: {{ arg.annotation }}, {% endfor %}
+    /,
+    **kw: Any,
+) -> Select[tuple[{%for ret in signature[1] %}{{ ret }} {% if not loop.last %}, {% endif %}{% endfor %}]]:
+    ...
+
+{% endfor %}
+
+def select(*entities: Any, **kw: Any) -> Select:  # type: ignore
+    return Select._create(*entities, **kw)  # type: ignore[return-value]
