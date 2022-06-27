@@ -104,7 +104,7 @@ def mapped_column(
 ) -> _T:
     if metadata is None:
         metadata = {}
-    return field(  # type: ignore[call-overload,return-value]
+    return field(  # type: ignore[call-overload,no-any-return]
         default=default,
         default_factory=default_factory,
         init=init,
