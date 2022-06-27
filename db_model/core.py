@@ -30,14 +30,14 @@ def get_registry() -> Registry:
     return _default_registry
 
 
-def get_columns(cls: type) -> Iterable[Column]:
+def get_columns(cls: type) -> Iterable[Column[Any]]:
     properties = getattr(cls, "__mapper_args__", {}).get("properties", {})
     fields_ = filter(lambda field: field.name not in properties, fields(cls))
     yield from map(get_column, fields_)
 
 
 @dataclass_transform(
-    field_descriptors=(field, Field, mapped_column),
+    field_specifiers=(field, Field, mapped_column),
     kw_only_default=True,
 )
 def register(

@@ -24,7 +24,7 @@ def register_type(type_: type[_T], db_type: type[TypeDecorator[_T]]) -> None:  #
     _COLUMN_TYPE_MAPPING[type_] = db_type
 
 
-def get_column(field: Field) -> Column[TypeEngine[_T]]:
+def get_column(field: Field[_T]) -> Column[TypeEngine[_T]]:
     sub_types, annotations = get_sub_types(field.type)
     is_primary_key = field.metadata.get("is_primary_key", False) or "PrimaryKey" in annotations
 

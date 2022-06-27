@@ -54,7 +54,7 @@ class Session(_Session):
         execution_options: Mapping[str, Any] = util.EMPTY_DICT,
         bind_arguments: Optional[Mapping[str, Any]] = None,
         **kw: Any,
-    ) -> ScalarResult:  # type: ignore[overload,supertype]
+    ) -> ScalarResult:
         return super().scalars(statement, params, execution_options, bind_arguments, **kw)  # type: ignore[return-value]
 
     @overload  # type: ignore[override]
@@ -94,7 +94,7 @@ class Session(_Session):
         _parent_execute_state: Optional[Any] = None,
         _add_event: Optional[Any] = None,
         **kw: Any,
-    ) -> Union[Result[_TSelectParam], ScalarResult[_TSelectParam]]:  # type: ignore[overload,supertype]
+    ) -> Union[Result[_TSelectParam], ScalarResult[_TSelectParam]]:
         return super().execute(  # type: ignore[return-value]
             statement,
             params=params,
