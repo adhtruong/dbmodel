@@ -6,6 +6,7 @@ from mypy import api as mypy_api
 
 CASES = [
     ("input_1.py", "output_1.txt"),
+    ("input_2.py", "output_2.txt"),
 ]
 
 CONFIG_PATH = "test/mypy/pyproject.toml"
@@ -22,7 +23,6 @@ def test_mypy_results(python_file_name: str, output_file_name: str) -> None:
         str(BASE_PATH / python_file_name),
         "--config-file",
         CONFIG_PATH,
-        "--no-incremental",
         "--cache-dir",
         f".mypy_cache/test-{os.path.splitext(python_file_name)[0]}",
     ]

@@ -9,6 +9,8 @@ __all__ = (
     "PrimaryKey",
     "mapped_column",
     "DBModel",
+    "get_metadata",
+    "get_registry",
 )
 
 
