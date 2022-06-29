@@ -9,13 +9,13 @@ class DBModelPlugin(Plugin):
 
     def get_class_decorator_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
         if fullname in {"db_model.core.register"}:
-            return dataclasses.dataclass_class_maker_callback
+            return dataclasses.dataclass_class_maker_callback  # type: ignore[return-value]
 
         return None
 
     def get_base_class_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
         if fullname in {"db_model.core.DBModel"}:
-            return dataclasses.dataclass_class_maker_callback
+            return dataclasses.dataclass_class_maker_callback  # type: ignore[return-value]
 
         return None
 
