@@ -37,27 +37,6 @@ test = [
   "pydantic == 1.9.0",
 ]
 
-[tool.black]
-exclude = '''
-(
-  /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | \.hg
-    | \.mypy_cache
-    | \.tox
-    | \.venv
-    | _build
-    | buck-out
-    | build
-    | dist
-  )/
-)
-'''
-include = '\.pyi?$'
-line-length = 120
-target-version = ['py39']
-
 [tool.coverage.report]
 exclude_lines = [
   "pragma: no cover",

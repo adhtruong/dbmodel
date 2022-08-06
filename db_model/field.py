@@ -28,7 +28,9 @@ class Mapped(Generic[_T]):
     if TYPE_CHECKING:
 
         @overload
-        def __get__(self, instance: Literal[None], owner: Any) -> ColumnClause[TypeEngine[_T]]:
+        def __get__(
+            self, instance: Literal[None], owner: Any
+        ) -> ColumnClause[TypeEngine[_T]]:
             ...
 
         @overload

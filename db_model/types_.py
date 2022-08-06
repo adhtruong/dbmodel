@@ -20,13 +20,17 @@ _COLUMN_TYPE_MAPPING: Dict[Type, Type[Union[TypeDecorator, TypeEngine]]] = {
 }
 
 
-def register_type(type_: type[_T], db_type: type[TypeDecorator[_T]]) -> None:  # pragma: no cover
+def register_type(
+    type_: type[_T], db_type: type[TypeDecorator[_T]]
+) -> None:  # pragma: no cover
     _COLUMN_TYPE_MAPPING[type_] = db_type
 
 
 def get_column(field: Field[_T]) -> Column[TypeEngine[_T]]:
     sub_types, annotations = get_sub_types(field.type)
-    is_primary_key = field.metadata.get("is_primary_key", False) or "PrimaryKey" in annotations
+    is_primary_key = (
+        field.metadata.get("is_primary_key", False) or "PrimaryKey" in annotations
+    )
 
     args: tuple = ()
     foreign_key = field.metadata.get("foreign_key")
@@ -35,7 +39,9 @@ def get_column(field: Field[_T]) -> Column[TypeEngine[_T]]:
             foreign_key = ForeignKey(foreign_key)
         args += (foreign_key,)
 
-    inner_types = {inner_type for inner_type in sub_types if inner_type != type(None)}  # noqa: E721
+    inner_types = {
+        inner_type for inner_type in sub_types if isinstance(inner_type, type(None))
+    }
     if len(inner_types) != 1:
         raise RuntimeError(f"Unable to process type {field.type}: {inner_types}")
     actual_type = tuple(inner_types)[0]

@@ -64,16 +64,28 @@ def test_crud_model(engine: Engine, session: Session) -> None:
     session.add_all(models)
 
     assert session.scalars(select(Model)).all() == models
-    assert session.execute(select(Model).where(col(Model.age) == None)).scalars().all() == models[:1]  # noqa: E711
-    assert session.execute(select(Model).where(Model.age == 20)).scalars().all() == models[1:]
+    assert (
+        session.execute(select(Model).where(col(Model.age) == None))  # noqa: E711
+        .scalars()
+        .all()
+        == models[:1]
+    )
+    assert (
+        session.execute(select(Model).where(Model.age == 20)).scalars().all()
+        == models[1:]
+    )
 
-    updated_model = session.execute(select(Model).filter(Model.age == 20)).scalars().one()
+    updated_model = (
+        session.execute(select(Model).filter(Model.age == 20)).scalars().one()
+    )
     updated_model.age = 25
     session.add(updated_model)
 
     assert session.get(Model, updated_model.id) == updated_model
     assert session.execute(select(Model).where(Model.age == 20)).all() == []
-    assert set(session.execute(select(col(Model.id))).all()) == {(model.id,) for model in models}
+    assert set(session.execute(select(col(Model.id))).all()) == {
+        (model.id,) for model in models
+    }
 
 
 def test_foreign_key(engine: Engine, session: Session) -> None:
@@ -138,7 +150,9 @@ def test_composite_foreign_key(engine: Engine, session: Session) -> None:
 
 
 def test_invalid_model() -> None:
-    with pytest.raises(RuntimeError, match=r"Unable to process type typing.Union\[str, datetime.date\]"):
+    with pytest.raises(
+        RuntimeError, match=r"Unable to process type typing.Union\[str, datetime.date\]"
+    ):
 
         @register
         class UnionType:
