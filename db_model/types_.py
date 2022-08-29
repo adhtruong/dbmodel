@@ -28,19 +28,17 @@ def register_type(
 
 def get_column(field: Field[_T]) -> Column[TypeEngine[_T]]:
     sub_types, annotations = get_sub_types(field.type)
-    is_primary_key = (
-        field.metadata.get("is_primary_key", False) or "PrimaryKey" in annotations
-    )
+    is_primary_key = getattr(field, "primary_key", False) or "PrimaryKey" in annotations
 
     args: tuple = ()
-    foreign_key = field.metadata.get("foreign_key")
+    foreign_key = getattr(field, "foreign_key", None)
     if foreign_key is not None:
         if not isinstance(foreign_key, ForeignKey):
             foreign_key = ForeignKey(foreign_key)
         args += (foreign_key,)
 
     inner_types = {
-        inner_type for inner_type in sub_types if isinstance(inner_type, type(None))
+        inner_type for inner_type in sub_types if not isinstance(None, inner_type)
     }
     if len(inner_types) != 1:
         raise RuntimeError(f"Unable to process type {field.type}: {inner_types}")

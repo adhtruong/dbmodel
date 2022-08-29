@@ -1,4 +1,5 @@
-from dataclasses import MISSING, field
+from dataclasses import MISSING
+from dataclasses import Field as _Field
 from typing import (
     TYPE_CHECKING,
     Annotated,
@@ -46,6 +47,32 @@ class Mapped(Generic[_T]):
 
         def __set__(self, instance: Any, value: _T) -> None:
             ...
+
+
+class Field(_Field, Generic[_T]):
+    def __init__(
+        self,
+        default,
+        default_factory,
+        init,
+        repr,
+        hash,
+        compare,
+        metadata,
+        primary_key: bool,
+        foreign_key: Optional[Union[str, ForeignKey, PrimaryKey[_T]]],
+    ) -> None:
+        super().__init__(
+            default=default,
+            default_factory=default_factory,
+            init=init,
+            repr=repr,
+            hash=hash,
+            compare=compare,
+            metadata=metadata,
+        )
+        self.primary_key = primary_key
+        self.foreign_key = foreign_key
 
 
 @overload
@@ -104,20 +131,16 @@ def mapped_column(
     is_primary_key: bool = False,
     foreign_key: Optional[Union[str, ForeignKey, PrimaryKey[_T]]] = None,
 ) -> _T:
-    if metadata is None:
-        metadata = {}
-    return field(  # type: ignore[call-overload,no-any-return]
+    return Field(  # type: ignore[return-value]
         default=default,
         default_factory=default_factory,
         init=init,
         repr=repr,
         hash=hash,
         compare=compare,
-        metadata=metadata
-        | {
-            "is_primary_key": is_primary_key,
-            "foreign_key": foreign_key,
-        },
+        metadata=metadata,
+        primary_key=is_primary_key,
+        foreign_key=foreign_key,
     )
 
 
