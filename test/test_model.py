@@ -8,7 +8,7 @@ import pydantic
 import pytest
 from sqlalchemy import ForeignKeyConstraint, MetaData, Table
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import ArgumentError
+from sqlalchemy.exc import ArgumentError, IntegrityError
 from sqlalchemy.orm import relationship
 
 from db_model import (
@@ -147,6 +147,21 @@ def test_composite_foreign_key(engine: Engine, session: Session) -> None:
             Book.author_last_name == Author.last_name,
         ),
     ).all() == [(book, author)]
+
+
+def test_sa_kwargs(engine: Engine, session: Session) -> None:
+    class Author(DBModel):
+        first_name: str = mapped_column(
+            sa_kwargs={"primary_key": True, "nullable": False},
+        )
+        last_name: str = mapped_column(sa_kwargs={"nullable": False})
+
+    metadata.create_all(engine)
+
+    author = Author(first_name="John", last_name=None)  # type: ignore
+    session.add(author)
+    with pytest.raises(IntegrityError):
+        session.commit()
 
 
 def test_invalid_model() -> None:

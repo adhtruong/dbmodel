@@ -1,7 +1,7 @@
 import uuid
 from dataclasses import Field
 from datetime import date, datetime
-from typing import Dict, Type, TypeVar, Union
+from typing import Any, Dict, Tuple, Type, TypeVar, Union
 
 from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String
 from sqlalchemy.types import TypeDecorator, TypeEngine
@@ -26,17 +26,8 @@ def register_type(
     _COLUMN_TYPE_MAPPING[type_] = db_type
 
 
-def get_column(field: Field[_T]) -> Column[TypeEngine[_T]]:
-    sub_types, annotations = get_sub_types(field.type)
-    is_primary_key = getattr(field, "primary_key", False) or "PrimaryKey" in annotations
-
-    args: tuple = ()
-    foreign_key = getattr(field, "foreign_key", None)
-    if foreign_key is not None:
-        if not isinstance(foreign_key, ForeignKey):
-            foreign_key = ForeignKey(foreign_key)
-        args += (foreign_key,)
-
+def get_column_type(field: Field[_T]) -> TypeEngine[_T]:
+    sub_types, _ = get_sub_types(field.type)
     inner_types = {
         inner_type for inner_type in sub_types if not isinstance(None, inner_type)
     }
@@ -48,10 +39,33 @@ def get_column(field: Field[_T]) -> Column[TypeEngine[_T]]:
     except KeyError:
         raise RuntimeError(f"Unable to map type {field.type}: {inner_types}")
 
+    return column_type
+
+
+def get_column(field: Field[_T]) -> Column[TypeEngine[_T]]:
+    args: Tuple[Any, ...] = getattr(field, "sa_args", None) or ()
+    foreign_key = getattr(field, "foreign_key", None)
+    if foreign_key is not None:
+        foreign_key = (
+            ForeignKey(foreign_key)
+            if not isinstance(foreign_key, ForeignKey)
+            else foreign_key
+        )
+        args += (foreign_key,)
+
+    column_type = get_column_type(field)
+
+    sub_types, annotations = get_sub_types(field.type)
+    is_primary_key = getattr(field, "primary_key", False) or "PrimaryKey" in annotations
+    kwargs: Dict[str, Union[str, Any]] = {
+        "nullable": type(None) in sub_types,
+        "primary_key": is_primary_key,
+    }
+    kwargs.update(getattr(field, "sa_kwargs", None) or {})
+
     return Column(
         field.name,
         column_type,
         *args,
-        nullable=type(None) in sub_types,
-        primary_key=is_primary_key,
+        **kwargs,  # type: ignore
     )

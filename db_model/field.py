@@ -9,6 +9,7 @@ from typing import (
     Literal,
     Mapping,
     Optional,
+    Tuple,
     TypeVar,
     Union,
     overload,
@@ -61,6 +62,8 @@ class Field(_Field, Generic[_T]):
         metadata,
         primary_key: bool,
         foreign_key: Optional[Union[str, ForeignKey, PrimaryKey[_T]]],
+        sa_args: Optional[Tuple[Any, ...]],
+        sa_kwargs: Optional[Mapping[str, Any]],
     ) -> None:
         super().__init__(
             default=default,
@@ -73,6 +76,8 @@ class Field(_Field, Generic[_T]):
         )
         self.primary_key = primary_key
         self.foreign_key = foreign_key
+        self.sa_args = sa_args
+        self.sa_kwargs = sa_kwargs
 
 
 @overload
@@ -86,6 +91,8 @@ def mapped_column(
     metadata: Optional[Mapping[str, Any]] = ...,
     is_primary_key: bool = False,
     foreign_key: Optional[Union[str, ForeignKey, PrimaryKey[_T]]] = ...,
+    sa_args: Optional[Tuple[Any, ...]] = ...,
+    sa_kwargs: Optional[Mapping[str, Any]] = ...,
 ) -> _T:
     ...
 
@@ -101,6 +108,8 @@ def mapped_column(
     metadata: Optional[Mapping[str, Any]] = ...,
     is_primary_key: bool = False,
     foreign_key: Optional[Union[str, ForeignKey, PrimaryKey[_T]]] = ...,
+    sa_args: Optional[Tuple[Any, ...]] = ...,
+    sa_kwargs: Optional[Mapping[str, Any]] = ...,
 ) -> _T:
     ...
 
@@ -115,6 +124,8 @@ def mapped_column(
     metadata: Optional[Mapping[str, Any]] = ...,
     is_primary_key: bool = False,
     foreign_key: Optional[Union[str, ForeignKey, PrimaryKey[_T]]] = ...,
+    sa_args: Optional[Tuple[Any, ...]] = ...,
+    sa_kwargs: Optional[Mapping[str, Any]] = ...,
 ) -> _T:
     ...
 
@@ -130,6 +141,8 @@ def mapped_column(
     metadata=None,
     is_primary_key: bool = False,
     foreign_key: Optional[Union[str, ForeignKey, PrimaryKey[_T]]] = None,
+    sa_args: Optional[Tuple[Any, ...]] = None,
+    sa_kwargs: Optional[Mapping[str, Any]] = None,
 ) -> _T:
     return Field(  # type: ignore[return-value]
         default=default,
@@ -141,6 +154,8 @@ def mapped_column(
         metadata=metadata,
         primary_key=is_primary_key,
         foreign_key=foreign_key,
+        sa_args=sa_args,
+        sa_kwargs=sa_kwargs,
     )
 
 
