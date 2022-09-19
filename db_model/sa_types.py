@@ -18,7 +18,7 @@ class GUID(TypeDecorator):  # pragma: no cover
 
     def load_dialect_impl(self, dialect: Dialect):
         if dialect.name == "postgresql":
-            return dialect.type_descriptor(UUID())
+            return dialect.type_descriptor(UUID())  # type: ignore[arg-type]
         else:
             return dialect.type_descriptor(CHAR(32))  # type: ignore[arg-type]
 

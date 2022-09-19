@@ -7,6 +7,7 @@ from typing_extensions import Annotated, dataclass_transform
 
 from db_model.field import Mapped as _Mapped
 from db_model.field import mapped_column
+from db_model.relationship import RelationshipInfo, relationship
 from db_model.types_ import get_column
 
 _T = TypeVar("_T")
@@ -30,14 +31,20 @@ def get_registry() -> Registry:
     return _default_registry
 
 
-def get_columns(cls: type) -> Iterable[Column[Any]]:
-    properties = getattr(cls, "__mapper_args__", {}).get("properties", {})
-    fields_ = filter(lambda field: field.name not in properties, fields(cls))
+def get_columns(cls: type, mapper_args: Dict[str, Any]) -> Iterable[Column[Any]]:
+    properties = mapper_args.get("properties", {})
+    fields_ = list(
+        filter(
+            lambda field: field.name not in properties
+            and not isinstance(field, RelationshipInfo),
+            fields(cls),
+        )
+    )
     yield from map(get_column, fields_)
 
 
 @dataclass_transform(
-    field_specifiers=(field, Field, mapped_column),
+    field_specifiers=(field, Field, mapped_column, relationship),
     kw_only_default=True,
 )
 def register(
@@ -53,7 +60,16 @@ def register(
         table_name = getattr(cls, "__tablename__", cls.__name__.lower())
         table_args = getattr(cls, "__table_args__", {})
         mapper_args = getattr(cls, "__mapper_args__", {})
-        columns = get_columns(cls)
+        columns = get_columns(cls, mapper_args)
+        relationships: Iterable[RelationshipInfo] = filter(
+            lambda field: isinstance(field, RelationshipInfo),  # type: ignore
+            fields(cls),
+        )
+        mapper_args.setdefault("properties", {})
+        for relationship_ in relationships:
+            mapper_args["properties"][
+                relationship_.name
+            ] = relationship_.__getrelationship__()
 
         registry.map_imperatively(
             cls,
@@ -69,7 +85,7 @@ def register(
 
 
 @dataclass_transform(
-    field_descriptors=(field, Field, mapped_column),
+    field_descriptors=(field, Field, mapped_column, relationship),
     kw_only_default=True,
 )
 class DBModel:
