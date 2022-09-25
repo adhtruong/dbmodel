@@ -7,7 +7,7 @@ from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String
 from sqlalchemy.types import TypeDecorator, TypeEngine
 
 from db_model.sa_types import GUID
-from db_model.typing_ import get_sub_types
+from db_model.typing_utils import get_sub_types
 
 _T = TypeVar("_T")
 
@@ -21,7 +21,7 @@ _COLUMN_TYPE_MAPPING: Dict[Type, Type[Union[TypeDecorator, TypeEngine]]] = {
 
 
 def register_type(
-    type_: type[_T], db_type: type[TypeDecorator[_T]]
+    type_: Type[_T], db_type: Type[TypeDecorator[_T]]
 ) -> None:  # pragma: no cover
     _COLUMN_TYPE_MAPPING[type_] = db_type
 

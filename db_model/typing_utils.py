@@ -1,7 +1,7 @@
 import sys
-from typing import Any, Optional, Type, Union, get_args, get_origin
+from typing import Any, Callable, Optional, Tuple, Type, Union, get_args, get_origin
 
-from typing_extensions import Annotated
+from typing_extensions import Annotated, ParamSpec
 
 if sys.version_info < (3, 10):  # pragma: no cover
 
@@ -16,7 +16,7 @@ else:  # pragma: no cover
         return tp is Union or tp is types.UnionType  # noqa: E721
 
 
-def get_sub_types(type_: type) -> tuple[tuple[type, ...], tuple[Any, ...]]:
+def get_sub_types(type_: Type) -> Tuple[Tuple[Type, ...], Tuple[Any, ...]]:
     origin = get_origin(type_)
     if origin is Annotated:
         args = get_args(type_)
@@ -26,3 +26,10 @@ def get_sub_types(type_: type) -> tuple[tuple[type, ...], tuple[Any, ...]]:
         return get_args(type_), ()
     else:
         return (type_,), ()
+
+
+P = ParamSpec("P")
+
+
+def copy_t(_: Callable[P, Any]) -> Callable[[Callable[..., Any]], Callable[P, Any]]:
+    return lambda f: f

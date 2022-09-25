@@ -31,7 +31,7 @@ def get_registry() -> Registry:
     return _default_registry
 
 
-def get_columns(cls: type, mapper_args: Dict[str, Any]) -> Iterable[Column[Any]]:
+def get_columns(cls: Type, mapper_args: Dict[str, Any]) -> Iterable[Column[Any]]:
     properties = mapper_args.get("properties", {})
     fields_ = list(
         filter(
