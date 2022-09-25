@@ -19,6 +19,8 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.types import TypeEngine
 
+from db_model.dataclass_utils import KW_ONLY
+
 _T = TypeVar("_T")
 
 PrimaryKey = Annotated[_T, "PrimaryKey"]
@@ -73,6 +75,7 @@ class Field(_Field, Generic[_T]):
             hash=hash,
             compare=compare,
             metadata=metadata,
+            **KW_ONLY,
         )
         self.primary_key = primary_key
         self.foreign_key = foreign_key

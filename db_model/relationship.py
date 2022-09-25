@@ -5,6 +5,8 @@ from sqlalchemy.orm import RelationshipProperty
 from sqlalchemy.orm import relationship as _relationship
 from typing_extensions import ParamSpec
 
+from db_model.dataclass_utils import KW_ONLY
+
 T = TypeVar("T")
 
 
@@ -22,6 +24,7 @@ class RelationshipInfo(Field[T]):
             hash=False,
             compare=False,
             metadata=None,
+            **KW_ONLY,
         )
         if kwargs.get("uselist", False):
             field_kwargs.update(
