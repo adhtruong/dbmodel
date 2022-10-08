@@ -3,12 +3,12 @@ from typing import Any, Callable, Optional, Tuple, Type, Union, get_args, get_or
 
 from typing_extensions import Annotated, ParamSpec
 
-if sys.version_info < (3, 10):  # pragma: no cover
+if sys.version_info < (3, 10):
 
     def is_union(type_: Optional[Type[Any]]) -> bool:
         return type_ is Union
 
-else:  # pragma: no cover
+else:
 
     import types
 
