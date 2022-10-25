@@ -21,7 +21,7 @@ requires-python = "~=3.9"
 [project.optional-dependencies]
 dev = [
   "autoflake==1.4",
-  "black==22.3.0",
+  "black==22.10.0",
   "blacken-docs==1.12.1",
   "flake8==4.0.1",
   "isort==5.10.1",
