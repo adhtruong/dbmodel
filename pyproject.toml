@@ -29,7 +29,7 @@ dev = [
   "mypy-extensions==0.4.3",
   "pre-commit==2.18.1",
   "sqlalchemy[mypy]==1.4.36",
-  "Jinja2==3.1.1",
+  "Jinja2==3.1.2",
 ]
 test = [
   "pytest == 7.1.2",
